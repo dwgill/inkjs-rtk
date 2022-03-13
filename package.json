@@ -10,7 +10,7 @@
     "prettier": "prettier --write .",
     "test": "jest",
     "prepare": "husky install && yarn install-peers",
-    "install-peers": "install-peers"
+    "install-peers": "install-peers -f"
   },
   "repository": {
     "type": "git",
@@ -39,6 +39,8 @@
     "react-redux": "^7.2.6"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.2",
+    "@testing-library/react": "^12.1.4",
     "@types/jest": "^27.4.1",
     "@types/react": "^17.0.39",
     "@types/react-redux": "^7.1.23",
@@ -47,6 +49,7 @@
     "jest": "^27.5.1",
     "lint-staged": "^12.3.5",
     "prettier": "^2.5.1",
+    "react-dom": "^17.0.2",
     "rollup": "^2.69.1",
     "rollup-plugin-typescript2": "^0.31.2",
     "ts-jest": "^27.1.3",
