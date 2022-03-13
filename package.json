@@ -1,0 +1,62 @@
+{
+  "name": "inkjs-rtk",
+  "version": "0.0.1",
+  "description": "Redux toolkit bindings for inkjs",
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "scripts": {
+    "prebuild": "rm -rf ./lib",
+    "build": "rollup -c",
+    "prettier": "prettier --write .",
+    "test": "jest",
+    "prepare": "husky install && yarn install-peers",
+    "install-peers": "install-peers"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/dwgill/inkjs-rtk.git"
+  },
+  "keywords": [
+    "ink",
+    "inkjs",
+    "react",
+    "react-redux",
+    "redux",
+    "redux",
+    "toolkit",
+    "rtk"
+  ],
+  "author": "Daniel Gill",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dwgill/inkjs-rtk/issues"
+  },
+  "homepage": "https://github.com/dwgill/inkjs-rtk#readme",
+  "peerDependencies": {
+    "@reduxjs/toolkit": "^1.8.0",
+    "inkjs": "^2.0.0",
+    "react": "^17.0.2",
+    "react-redux": "^7.2.6"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "@types/react": "^17.0.39",
+    "@types/react-redux": "^7.1.23",
+    "husky": "^7.0.4",
+    "install-peers-cli": "^2.2.0",
+    "jest": "^27.5.1",
+    "lint-staged": "^12.3.5",
+    "prettier": "^2.5.1",
+    "rollup": "^2.69.1",
+    "rollup-plugin-typescript2": "^0.31.2",
+    "ts-jest": "^27.1.3",
+    "typescript": "^4.6.2"
+  },
+  "files": [
+    "lib",
+    "package.json"
+  ],
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  }
+}
