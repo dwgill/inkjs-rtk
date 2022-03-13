@@ -36,7 +36,9 @@ export function useChooseChoiceIndex(
       dispatch(
         storyActions.choices.chooseChoice({
           choiceIndex,
-          maximally: innerMax ?? true,
+          ...(innerMax !== undefined && {
+            maximally: innerMax,
+          }),
         })
       );
     },

@@ -6,8 +6,9 @@ import { getChoicesFromStorySliceState, StorySliceState } from "../state";
 import { getChoicesSelectors } from "../state/choices";
 import { ChoiceData } from "../util/types";
 
+export type ChoiceComponent = React.ComponentType<ChoiceProps>;
 interface ChoicesProps<RootState> {
-  choiceComponent?: React.ComponentType<ChoiceProps>;
+  choiceComponent?: ChoiceComponent;
   continueMaximally?: boolean;
   getState: (rootState: RootState) => StorySliceState;
 }
