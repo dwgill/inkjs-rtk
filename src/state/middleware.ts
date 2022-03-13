@@ -62,7 +62,7 @@ export function initializeStoryMiddleware<RootState>(
   });
 
   inkjsRtkStoryListenerMiddlewareInstance.startListening({
-    actionCreator: storyActions.choices.selectChoice,
+    actionCreator: storyActions.choices.chooseChoice,
     effect({ payload: { choiceId, maximally, choiceIndex } }, listenerApi) {
       const story = listenerApi.extra.story;
       if (story == null) {

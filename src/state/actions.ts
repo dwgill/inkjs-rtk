@@ -1,10 +1,10 @@
 import { linesActions } from "./lines";
-import { continueStory, selectChoice, setStory } from "./independentActions";
+import { continueStory, chooseChoice, setStory } from "./independentActions";
 
 // The library-consumer facing actions.
 
 export const choices = {
-  selectChoice,
+  chooseChoice,
 };
 
 export const misc = {

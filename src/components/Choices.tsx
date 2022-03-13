@@ -1,7 +1,7 @@
 import { EntityId } from "@reduxjs/toolkit";
 import React, { memo } from "react";
 import { useSelector } from "react-redux";
-import { useSelectChoiceId } from "../hooks/useSelectChoice";
+import { useChooseChoiceId } from "../hooks/useChooseChoice";
 import { getChoicesFromStorySliceState, StorySliceState } from "../state";
 import { getChoicesSelectors } from "../state/choices";
 import { ChoiceData } from "../util/types";
@@ -62,10 +62,10 @@ interface ChoiceProps {
   choiceData: ChoiceData;
 }
 function DefaultChoice({ choiceData }: ChoiceProps) {
-  const onSelectChoice = useSelectChoiceId(choiceData.id);
+  const onChooseChoice = useChooseChoiceId(choiceData.id);
   return (
     <li>
-      <button onClick={() => onSelectChoice()}>{choiceData.text}</button>
+      <button onClick={() => onChooseChoice()}>{choiceData.text}</button>
     </li>
   );
 }

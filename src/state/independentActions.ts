@@ -13,17 +13,17 @@ export const continueStory = createAction(
   })
 );
 
-export interface SelectChoiceIdArgs {
+export interface ChooseChoiceIdArgs {
   choiceId: EntityId;
   maximally?: boolean;
 }
-export interface SelectChoiceIndexArgs {
+export interface ChooseChoiceIndexArgs {
   choiceIndex: number;
   maximally?: boolean;
 }
-export const selectChoice = createAction(
-  "@inkjs-rtk/extra/selectChoice",
-  (args: SelectChoiceIdArgs | SelectChoiceIndexArgs) => {
+export const chooseChoice = createAction(
+  "@inkjs-rtk/extra/chooseChoice",
+  (args: ChooseChoiceIdArgs | ChooseChoiceIndexArgs) => {
     if ("choiceId" in args) {
       return {
         payload: {

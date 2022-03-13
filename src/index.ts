@@ -4,9 +4,9 @@ export { default as Narrative } from "./components/Narrative";
 export { default as Choices } from "./components/Choices";
 export { useContinueStory } from "./hooks/useContinueStory";
 export {
-  useSelectChoiceId,
-  useSelectChoiceIndex,
-} from "./hooks/useSelectChoice";
+  useChooseChoiceId,
+  useChooseChoiceIndex,
+} from "./hooks/useChooseChoice";
 export {
   ChoiceData,
   LineData,

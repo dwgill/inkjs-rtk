@@ -6,7 +6,7 @@ import { storyActions } from "../state";
 interface SelectChoiceOptions {
   continueMaximally?: boolean;
 }
-export function useSelectChoiceId(
+export function useChooseChoiceId(
   choiceId: EntityId,
   { continueMaximally: outerMax }: SelectChoiceOptions = {}
 ) {
@@ -14,7 +14,7 @@ export function useSelectChoiceId(
   return useCallback(
     ({ continueMaximally: innerMax = outerMax }: SelectChoiceOptions = {}) => {
       dispatch(
-        storyActions.choices.selectChoice({
+        storyActions.choices.chooseChoice({
           choiceId: choiceId,
           maximally: innerMax ?? true,
         })
@@ -24,7 +24,7 @@ export function useSelectChoiceId(
   );
 }
 
-export function useSelectChoiceIndex(
+export function useChooseChoiceIndex(
   choiceIndex: number,
   { continueMaximally: outerMax }: SelectChoiceOptions = {}
 ) {
@@ -32,7 +32,7 @@ export function useSelectChoiceIndex(
   return useCallback(
     ({ continueMaximally: innerMax = outerMax }: SelectChoiceOptions = {}) => {
       dispatch(
-        storyActions.choices.selectChoice({
+        storyActions.choices.chooseChoice({
           choiceIndex,
           maximally: innerMax ?? true,
         })
