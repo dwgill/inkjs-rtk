@@ -9,6 +9,7 @@
     "build": "rollup -c",
     "prettier": "prettier --write .",
     "test": "jest",
+    "test-watch": "jest --watch",
     "prepare": "husky install && yarn install-peers",
     "install-peers": "install-peers -f"
   },

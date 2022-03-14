@@ -7,9 +7,21 @@ import arraysAreShallowEqual from "../util/arraysAreShallowEqual";
 import { groupLines } from "../util/lineGroups";
 import { LineData } from "../util/types";
 
+interface LineGroupProps {
+  children: ReactNode;
+  firstLine: LineData | null;
+  groupIndex: number;
+}
+export type LineGroupComponent = React.ComponentType<LineGroupProps>;
+interface LineProps {
+  lineData: LineData;
+  groupHeading: LineData | null;
+}
+export type LineComponent = React.ComponentType<LineProps>;
+
 interface NarrativeProps<RootState> {
-  lineComponent?: React.ComponentType<LineProps>;
-  lineGroupComponent?: React.ComponentType<LineGroupProps>;
+  lineComponent?: LineComponent;
+  lineGroupComponent?: LineGroupComponent;
   getState: (rootState: RootState) => StorySliceState;
 }
 
@@ -80,8 +92,8 @@ export default Narrative;
 interface LineGroupWrapperProps<RootState> {
   getState: (rootState: RootState) => StorySliceState;
   groupIndex: number;
-  lineComponent?: React.ComponentType<LineProps>;
-  lineGroupComponent?: React.ComponentType<LineGroupProps>;
+  lineComponent?: LineComponent;
+  lineGroupComponent?: LineGroupComponent;
   lineIds: EntityId[];
 }
 
@@ -129,15 +141,9 @@ const MemoizedLineGroupWrapper = memo(
   }
 ) as typeof LineGroupWrapper;
 
-interface LineGroupProps {
-  children: ReactNode;
-  firstLine: LineData | null;
-  groupIndex: number;
-}
-
-function DefaultLineGroup({ children }: LineGroupProps) {
-  return <>{children}</>;
-}
+const DefaultLineGroup: LineGroupComponent = ({ children }: LineGroupProps) => (
+  <>{children}</>
+);
 
 interface LineWrapperProps<RootState> {
   lineId: EntityId;
@@ -168,15 +174,10 @@ const LineWrapper = function LineWrapper<RootState>({
     return null;
   }
 
-  return <LineComponent line={line} groupHeading={groupHeading} />;
+  return <LineComponent lineData={line} groupHeading={groupHeading} />;
 };
 const MemoizedLineWrapper = memo(LineWrapper) as typeof LineWrapper;
 
-interface LineProps {
-  line: LineData;
-  groupHeading: LineData | null;
-}
-
-function DefaultLine({ line }: LineProps) {
-  return <p>{line.text}</p>;
-}
+const DefaultLine: LineComponent = ({ lineData }: LineProps) => (
+  <p>{lineData.text}</p>
+);

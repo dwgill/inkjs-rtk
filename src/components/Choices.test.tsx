@@ -22,39 +22,39 @@ describe("<Choices />", () => {
   afterEach(() => {
     cleanup();
   });
+  const initState = [
+    choicesActions.setChoices([
+      {
+        id: "foo_id",
+        index: 0,
+        isInvisibleDefault: false,
+        originalThreadIndex: 0,
+        text: "foo",
+      },
+      {
+        id: "bar_id",
+        index: 1,
+        isInvisibleDefault: false,
+        originalThreadIndex: 0,
+        text: "bar",
+      },
+      {
+        id: "foobar_id",
+        index: 2,
+        isInvisibleDefault: false,
+        originalThreadIndex: 0,
+        text: "foobar",
+      },
+      {
+        id: "barfoo_id",
+        index: 3,
+        isInvisibleDefault: false,
+        originalThreadIndex: 0,
+        text: "barfoo",
+      },
+    ]),
+  ].reduce(reducer, undefined);
   it("works with default values", () => {
-    const initState = [
-      choicesActions.setChoices([
-        {
-          id: "foo_id",
-          index: 0,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "foo",
-        },
-        {
-          id: "bar_id",
-          index: 1,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "bar",
-        },
-        {
-          id: "foobar_id",
-          index: 2,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "foobar",
-        },
-        {
-          id: "barfoo_id",
-          index: 3,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "barfoo",
-        },
-      ]),
-    ].reduce(reducer, undefined);
     const store = createStore(initState);
     const dispatch = jest.spyOn(store, "dispatch");
 
@@ -81,38 +81,6 @@ describe("<Choices />", () => {
         </div>
       );
     };
-    const initState = [
-      choicesActions.setChoices([
-        {
-          id: "foo_id",
-          index: 0,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "foo",
-        },
-        {
-          id: "bar_id",
-          index: 1,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "bar",
-        },
-        {
-          id: "foobar_id",
-          index: 2,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "foobar",
-        },
-        {
-          id: "barfoo_id",
-          index: 3,
-          isInvisibleDefault: false,
-          originalThreadIndex: 0,
-          text: "barfoo",
-        },
-      ]),
-    ].reduce(reducer, undefined);
     const store = createStore(initState);
     const dispatch = jest.spyOn(store, "dispatch");
     const { container } = render(
