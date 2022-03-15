@@ -5,7 +5,7 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { ChoiceData } from "../util/types";
-import { clearStory } from "./independentActions";
+import { clearStory, setStory } from "./independentActions";
 
 type NewChoiceValue = Omit<ChoiceData, "id"> & Partial<Pick<ChoiceData, "id">>;
 
@@ -46,7 +46,10 @@ const choicesSlice = createSlice({
           payload: {
             choices:
               choices?.map((choiceData) => ({
-                ...choiceData,
+                index: choiceData.index,
+                text: choiceData.text,
+                isInvisibleDefault: choiceData.isInvisibleDefault,
+                originalThreadIndex: choiceData.originalThreadIndex,
                 id: choiceData.id ?? nanoid(),
               })) ?? [],
           },
@@ -56,6 +59,7 @@ const choicesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(clearStory, () => initState);
+    builder.addCase(setStory, () => initState);
   },
 });
 

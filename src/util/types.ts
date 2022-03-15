@@ -79,6 +79,7 @@ export interface StoryConfigV1 {
     groupTags: string[];
     grouplessTags: string[];
   };
+  continueMaximally?: boolean;
 }
 
 export type StoryConfig = StoryConfigV1;

@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { simpleSetFromArr } from "../util/simpleSet";
 import { SimpleSet } from "../util/types";
-import { clearStory } from "./independentActions";
+import { clearStory, setStory } from "./independentActions";
 
 export interface VariablesSliceState {
   readonly config: {
@@ -56,6 +57,18 @@ const variablesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(setStory, (state, { payload: { config } }) => {
+      state.values = {};
+      state.config.trackedBools = simpleSetFromArr(
+        config.trackedVariables?.bool ?? []
+      );
+      state.config.trackedFloats = simpleSetFromArr(
+        config.trackedVariables?.float ?? []
+      );
+      state.config.trackedInts = simpleSetFromArr(
+        config.trackedVariables?.int ?? []
+      );
+    });
     builder.addCase(clearStory, () => initState);
   },
 });

@@ -1,16 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { clearStory } from "./independentActions";
+import { clearStory, setStory } from "./independentActions";
 
 export interface MiscSliceState {
   readonly storyErrors: string[];
   readonly canContinue: boolean;
-  storyIsSet: boolean;
+  readonly continueMaximally: boolean;
+  readonly storyIsSet: boolean;
 }
 
 const initState: MiscSliceState = {
   canContinue: false,
   storyErrors: [],
   storyIsSet: false,
+  continueMaximally: false,
 };
 
 const miscSlice = createSlice({
@@ -31,6 +33,12 @@ const miscSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(setStory, (state, { payload: { config } }) => {
+      state.canContinue = initState.canContinue;
+      state.storyErrors = initState.storyErrors;
+      state.storyIsSet = false;
+      state.continueMaximally = !!config.continueMaximally;
+    });
     builder.addCase(clearStory, () => initState);
   },
 });
@@ -48,5 +56,8 @@ export const getMiscSelectors = <S>(
   },
   selectStoryIsSet(state: S) {
     return selectSliceState(state).storyIsSet;
+  },
+  selectContinueMaximally(state: S) {
+    return selectSliceState(state).continueMaximally;
   },
 });

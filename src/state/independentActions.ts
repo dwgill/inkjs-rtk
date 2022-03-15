@@ -28,7 +28,7 @@ export const chooseChoice = createAction(
       return {
         payload: {
           choiceId: args.choiceId,
-          maximally: args.maximally ?? false,
+          maximally: args.maximally,
         },
       };
     }
@@ -36,7 +36,7 @@ export const chooseChoice = createAction(
     return {
       payload: {
         choiceIndex: args.choiceIndex,
-        maximally: args.maximally ?? false,
+        maximally: args.maximally,
       },
     };
   }

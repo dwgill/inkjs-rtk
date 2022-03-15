@@ -157,6 +157,8 @@ const linesSlice = createSlice({
       const {
         payload: { config },
       } = action;
+      state.collection = linesCollectionAdapter.getInitialState();
+      state.groupDefinitions = [];
       state.groupTags = {};
       state.ungroupTags = {};
       if (config.lineGrouping?.groupTags?.length) {

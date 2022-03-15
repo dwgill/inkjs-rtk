@@ -35,9 +35,18 @@ export function initializeStoryMiddleware<RootState>(
 ) {
   const selectors = getStorySelectors(getStorySliceState);
 
+  if (process.env.NODE_ENV === "development") {
+    (window as any).storyExtra = mutableMiddlewareState;
+  }
+
   inkjsRtkStoryListenerMiddlewareInstance.startListening({
     actionCreator: storyActions.misc.continueStory,
     effect({ payload: { maximally } }, listenerApi) {
+      if (maximally == null) {
+        maximally = selectors.misc.selectContinueMaximally(
+          listenerApi.getState() as RootState
+        );
+      }
       const story = listenerApi.extra.story;
       if (story == null) {
         console.error("Attempted to continue non-existant story.");
@@ -53,7 +62,7 @@ export function initializeStoryMiddleware<RootState>(
 
       while (canContinue) {
         story.Continue();
-        canContinue = handleStoryStep(listenerApi);
+        canContinue = readStoryStateToRedux(listenerApi);
         if (!maximally) {
           return;
         }
@@ -64,6 +73,11 @@ export function initializeStoryMiddleware<RootState>(
   inkjsRtkStoryListenerMiddlewareInstance.startListening({
     actionCreator: storyActions.choices.chooseChoice,
     effect({ payload: { choiceId, maximally, choiceIndex } }, listenerApi) {
+      if (maximally == null) {
+        maximally = selectors.misc.selectContinueMaximally(
+          listenerApi.getState() as RootState
+        );
+      }
       const story = listenerApi.extra.story;
       if (story == null) {
         console.error("Attempted to select choice of non-existant story.");
@@ -91,7 +105,7 @@ export function initializeStoryMiddleware<RootState>(
       }
 
       if (!story.canContinue) {
-        handleStoryStep(listenerApi);
+        readStoryStateToRedux(listenerApi);
       } else {
         listenerApi.dispatch(storyActions.misc.continueStory({ maximally }));
       }
@@ -120,7 +134,6 @@ export function initializeStoryMiddleware<RootState>(
         return;
       }
 
-      listenerApi.dispatch(clearStory());
       listenerApi.extra.story = story;
       const observedVarNames = [
         ...(config?.trackedVariables?.bool ?? []),
@@ -147,11 +160,21 @@ export function initializeStoryMiddleware<RootState>(
           story.ObserveVariable(varName, listenerApi.extra.variableObserver);
         }
       }
+
+      readStoryStateToRedux(listenerApi);
+      if (
+        selectors.misc.selectCanContinue(listenerApi.getState() as RootState) &&
+        selectors.misc.selectContinueMaximally(
+          listenerApi.getState() as RootState
+        )
+      ) {
+        listenerApi.dispatch(storyActions.misc.continueStory());
+      }
     },
   });
 
   mutableMiddlewareState.initialized = true;
-  return function initializeStoryMiddleware() {
+  return function unintializeStoryMiddleware() {
     inkjsRtkStoryListenerMiddlewareInstance.clearListeners();
     if (
       mutableMiddlewareState.story &&
@@ -167,7 +190,7 @@ export function initializeStoryMiddleware<RootState>(
   };
 }
 
-function handleStoryStep(
+function readStoryStateToRedux(
   listenerApi: ListenerEffectAPI<
     unknown,
     Dispatch,
