@@ -14,7 +14,7 @@ export function useChooseChoiceId(
   return useCallback(
     ({ continueMaximally: innerMax = outerMax }: SelectChoiceOptions = {}) => {
       dispatch(
-        storyActions.choices.chooseChoice({
+        storyActions.chooseChoiceById({
           choiceId: choiceId,
           ...(innerMax !== undefined && {
             maximally: innerMax,
@@ -34,7 +34,7 @@ export function useChooseChoiceIndex(
   return useCallback(
     ({ continueMaximally: innerMax = outerMax }: SelectChoiceOptions = {}) => {
       dispatch(
-        storyActions.choices.chooseChoice({
+        storyActions.chooseChoiceByIndex({
           choiceIndex,
           ...(innerMax !== undefined && {
             maximally: innerMax,

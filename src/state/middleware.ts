@@ -1,17 +1,25 @@
 import {
   createListenerMiddleware,
   Dispatch,
+  EntityId,
+  isAnyOf,
   ListenerEffectAPI,
+  TypedStartListening,
 } from "@reduxjs/toolkit";
 import { Story } from "inkjs";
+import { StoryException } from "inkjs/engine/StoryException";
 import { getStorySelectors, storyActions, StorySliceState } from ".";
 import { simpleSetFromArr } from "../util/simpleSet";
-import { LineKind } from "../util/types";
+import { ExternalFunctionCallback, LineKind } from "../util/types";
 import { choicesActions } from "./choices";
 import { clearStory } from "./independentActions";
 import { linesActions } from "./lines";
 import { miscActions } from "./misc";
 import { variablesActions } from "./variables";
+
+function isStoryException(err: unknown): err is StoryException {
+  return Boolean(err && err instanceof Error && err.name === "StoryException");
+}
 
 type VariableObserver = Parameters<
   InstanceType<typeof Story>["ObserveVariable"]
@@ -21,6 +29,7 @@ let mutableMiddlewareState = {
   initialized: false,
   story: null as null | InstanceType<typeof Story>,
   variableObserver: null as null | VariableObserver,
+  boundExternalFunctionNames: [] as string[],
 };
 
 const inkjsRtkStoryListenerMiddlewareInstance = createListenerMiddleware({
@@ -34,17 +43,23 @@ export function initializeStoryMiddleware<RootState>(
   getStorySliceState: (rootState: RootState) => StorySliceState
 ) {
   const selectors = getStorySelectors(getStorySliceState);
+  const startListening =
+    inkjsRtkStoryListenerMiddlewareInstance.startListening as TypedStartListening<
+      RootState,
+      Dispatch,
+      typeof mutableMiddlewareState
+    >;
 
   if (process.env.NODE_ENV === "development") {
     (window as any).storyExtra = mutableMiddlewareState;
   }
 
-  inkjsRtkStoryListenerMiddlewareInstance.startListening({
-    actionCreator: storyActions.misc.continueStory,
+  startListening({
+    actionCreator: storyActions.continueStory,
     effect({ payload: { maximally } }, listenerApi) {
       if (maximally == null) {
         maximally = selectors.misc.selectContinueMaximally(
-          listenerApi.getState() as RootState
+          listenerApi.getState()
         );
       }
       const story = listenerApi.extra.story;
@@ -70,50 +85,68 @@ export function initializeStoryMiddleware<RootState>(
     },
   });
 
-  inkjsRtkStoryListenerMiddlewareInstance.startListening({
-    actionCreator: storyActions.choices.chooseChoice,
-    effect({ payload: { choiceId, maximally, choiceIndex } }, listenerApi) {
-      if (maximally == null) {
-        maximally = selectors.misc.selectContinueMaximally(
-          listenerApi.getState() as RootState
-        );
-      }
+  startListening({
+    matcher: isAnyOf(
+      storyActions.chooseChoiceById,
+      storyActions.chooseChoiceByIndex
+    ),
+    effect(action, listenerApi) {
       const story = listenerApi.extra.story;
       if (story == null) {
         console.error("Attempted to select choice of non-existant story.");
         return;
       }
 
-      if (choiceIndex) {
+      let maximally: boolean | null = null;
+      let choiceIndex: number | null = null;
+      let choiceId: EntityId | null = null;
+      if (storyActions.chooseChoiceById.match(action)) {
+        maximally = action.payload.maximally ?? null;
+        choiceId = action.payload.choiceId;
+      } else if (storyActions.chooseChoiceByIndex.match(action)) {
+        maximally = action.payload.maximally ?? null;
+        choiceIndex = action.payload.choiceIndex;
+      } else {
+        console.error("Attempted to select choice with unrecognized action.");
+        return;
+      }
+
+      if (choiceIndex != null) {
         story.ChooseChoiceIndex(choiceIndex);
       } else if (choiceId != null) {
         const choice = selectors.choices.selectById(
-          listenerApi.getState() as RootState,
+          listenerApi.getState(),
           choiceId
         );
         if (choice == null) {
           if (process.env.NODE_ENV === "development") {
             console.error(
-              `Attempted to select non-existant choice of ID '${choiceId}'.`
+              `Attempted to select non-existant choice with ID '${choiceId}'.`
             );
           }
           return;
         }
         story.ChooseChoiceIndex(choice.index);
       } else {
+        console.error("Attempted to select choice with invalid action.");
         return;
       }
 
       if (!story.canContinue) {
         readStoryStateToRedux(listenerApi);
       } else {
-        listenerApi.dispatch(storyActions.misc.continueStory({ maximally }));
+        if (maximally == null) {
+          maximally = selectors.misc.selectContinueMaximally(
+            listenerApi.getState()
+          );
+        }
+        listenerApi.dispatch(storyActions.continueStory({ maximally }));
       }
     },
   });
 
-  inkjsRtkStoryListenerMiddlewareInstance.startListening({
-    actionCreator: storyActions.misc.setStory,
+  startListening({
+    actionCreator: storyActions.setStory,
     effect({ payload: { config, storyJson } }, listenerApi) {
       if (!config || config.version !== 1) {
         console.error("Attempted to set story with invalid configuration.");
@@ -125,11 +158,11 @@ export function initializeStoryMiddleware<RootState>(
         listenerApi.dispatch(clearStory());
         return;
       }
-      let story;
+      let story: InstanceType<typeof Story>;
       try {
         story = new Story(storyJson);
       } catch (err) {
-        console.error("Attempt to set story with invalid json");
+        console.error("Attempt to set story with invalid json", err);
         listenerApi.dispatch(clearStory);
         return;
       }
@@ -161,14 +194,102 @@ export function initializeStoryMiddleware<RootState>(
         }
       }
 
+      if (config?.externalFunctions?.lookaheadSafe) {
+        for (const [name, callback] of Object.entries(
+          config.externalFunctions.lookaheadSafe
+        )) {
+          bindFunctionToStory(
+            {
+              callback,
+              name,
+              lookaheadSafe: true,
+            },
+            listenerApi
+          );
+        }
+      }
+      if (config?.externalFunctions?.lookaheadUnsafe) {
+        for (const [name, callback] of Object.entries(
+          config.externalFunctions.lookaheadUnsafe
+        )) {
+          bindFunctionToStory(
+            {
+              callback,
+              name,
+              lookaheadSafe: false,
+            },
+            listenerApi
+          );
+        }
+      }
+
       readStoryStateToRedux(listenerApi);
       if (
-        selectors.misc.selectCanContinue(listenerApi.getState() as RootState) &&
+        selectors.misc.selectCanContinue(listenerApi.getState()) &&
         selectors.misc.selectContinueMaximally(
           listenerApi.getState() as RootState
         )
       ) {
-        listenerApi.dispatch(storyActions.misc.continueStory());
+        listenerApi.dispatch(storyActions.continueStory());
+      }
+    },
+  });
+
+  startListening({
+    actionCreator: storyActions.bindExternalFunction,
+    effect(action, listenerApi) {
+      bindFunctionToStory(action.payload, listenerApi);
+    },
+  });
+
+  startListening({
+    actionCreator: storyActions.setVariable,
+    effect({ payload: { name, value: newValue } }, listenerApi) {
+      const story = listenerApi.extra.story;
+      if (story == null) {
+        console.error(
+          `Attempted to set variable '${name}' of non-existant story.`
+        );
+        return;
+      }
+      if (newValue == null) {
+        console.error(`Attempted to set variable '${name}' to null.`);
+        return;
+      }
+      if (!["number", "string", "boolean"].includes(typeof newValue)) {
+        console.error(`Attempted to set variable '${name}' to complex value.`);
+        return;
+      }
+      const oldValue = story.variablesState.$(name, undefined);
+      if (!["number", "string", "boolean"].includes(typeof oldValue)) {
+        console.error(
+          `Attempted to set complex variable '${name}' to number, string, or boolean.`
+        );
+        return;
+      }
+      try {
+        story.variablesState.$(name, newValue);
+      } catch (err) {
+        if (!isStoryException(err)) {
+          throw err;
+        }
+        if (
+          err.message.match(
+            /Cannot assign to a variable.*that hasn't been declared in the story/
+          )
+        ) {
+          console.error(
+            `Attempted to set variable '${name}' that has not been declared in the story.`
+          );
+          return;
+        }
+        if (err.message.match(/Invalid value passed to VariableState:.*/)) {
+          console.error(
+            `Attempted to set variable '${name}' to invalid value: ${newValue}`
+          );
+          return;
+        }
+        throw err;
       }
     },
   });
@@ -184,22 +305,29 @@ export function initializeStoryMiddleware<RootState>(
         mutableMiddlewareState.variableObserver
       );
     }
+
+    if (mutableMiddlewareState.story) {
+      for (const fname of mutableMiddlewareState.boundExternalFunctionNames) {
+        mutableMiddlewareState.story.UnbindExternalFunction(fname);
+      }
+    }
+
     mutableMiddlewareState.initialized = false;
     mutableMiddlewareState.story = null;
     mutableMiddlewareState.variableObserver = null;
   };
 }
 
-function readStoryStateToRedux(
+function readStoryStateToRedux<RootState>(
   listenerApi: ListenerEffectAPI<
-    unknown,
+    RootState,
     Dispatch,
     typeof mutableMiddlewareState
   >
 ) {
   const story = listenerApi.extra.story;
   if (story == null) {
-    console.error("Attempted to handle story step of non-existant story.");
+    console.error("Attempted to read state of non-existant story.");
     return false;
   }
   const canContinue = story.canContinue;
@@ -224,4 +352,42 @@ function readStoryStateToRedux(
   listenerApi.dispatch(miscActions.setCanContinue(canContinue));
   listenerApi.dispatch(choicesActions.setChoices(currentChoices));
   return canContinue;
+}
+
+function bindFunctionToStory<RootState>(
+  functionDefinition: {
+    name: string;
+    callback: ExternalFunctionCallback;
+    lookaheadSafe?: boolean;
+  },
+  listenerApi: ListenerEffectAPI<
+    RootState,
+    Dispatch,
+    typeof mutableMiddlewareState
+  >
+) {
+  const story = listenerApi.extra.story;
+  if (story == null) {
+    console.error(
+      `Attempted to bind function '${functionDefinition.name}' to non-existant story.`
+    );
+    return;
+  }
+
+  story.BindExternalFunction(
+    functionDefinition.name,
+    (...args: any[]) => {
+      return functionDefinition.callback.apply(null, [
+        {
+          dispatch: listenerApi.dispatch,
+          getState: listenerApi.getState,
+          story: story,
+        },
+        ...args,
+      ]);
+    },
+    functionDefinition.lookaheadSafe ?? false
+  );
+
+  listenerApi.extra.boundExternalFunctionNames.push(functionDefinition.name);
 }

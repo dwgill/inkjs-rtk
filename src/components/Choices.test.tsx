@@ -3,7 +3,10 @@ import React from "react";
 import { useChooseChoiceIndex } from "../hooks/useChooseChoice";
 import { getStorySelectors, storySliceReducer } from "../state";
 import { choicesActions } from "../state/choices";
-import { chooseChoice } from "../state/independentActions";
+import {
+  chooseChoiceById,
+  chooseChoiceByIndex,
+} from "../state/independentActions";
 import {
   render,
   TestRootState,
@@ -67,7 +70,7 @@ describe("<Choices />", () => {
     }
     fireEvent.click(screen.getByText("barfoo", { exact: true }));
     expect(dispatch).toHaveBeenCalledWith(
-      chooseChoice({
+      chooseChoiceById({
         choiceId: "barfoo_id",
       })
     );
@@ -112,7 +115,7 @@ describe("<Choices />", () => {
 
     fireEvent.click(container.querySelector("#choice-foobar_id button")!);
     expect(dispatch).toHaveBeenCalledWith(
-      chooseChoice({
+      chooseChoiceByIndex({
         choiceIndex: 2,
       })
     );

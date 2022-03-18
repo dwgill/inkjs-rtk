@@ -12,7 +12,7 @@ export function useContinueStory({
   return useCallback(
     ({ continueMaximally: innerMax = outerMax }: ContinueStoryOptions = {}) => {
       dispatch(
-        storyActions.misc.continueStory({
+        storyActions.continueStory({
           maximally: innerMax ?? true,
         })
       );

@@ -1,3 +1,6 @@
+import { Dispatch } from "@reduxjs/toolkit";
+import { Story } from "inkjs/engine/Story";
+
 export enum LineKind {
   Text = "text",
 }
@@ -80,6 +83,14 @@ export interface StoryConfigV1 {
     grouplessTags: string[];
   };
   continueMaximally?: boolean;
+  externalFunctions?: {
+    lookaheadSafe?: {
+      [functionName: string]: ExternalFunctionCallback;
+    };
+    lookaheadUnsafe?: {
+      [functionName: string]: ExternalFunctionCallback;
+    };
+  };
 }
 
 export type StoryConfig = StoryConfigV1;
@@ -87,3 +98,13 @@ export type StoryConfig = StoryConfigV1;
 export const defaultStoryConfig: StoryConfig = {
   version: 1,
 };
+
+export interface ExternalFunctionMeta {
+  getState(): unknown;
+  dispatch: Dispatch;
+  story: InstanceType<typeof Story>;
+}
+
+export interface ExternalFunctionCallback {
+  (meta: ExternalFunctionMeta, ...args: any[]): any;
+}

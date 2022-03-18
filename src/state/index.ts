@@ -44,4 +44,4 @@ export const getStorySelectors = <S>(
   misc: getMiscSelectors(getMiscFromStorySliceState(getStorySliceState)),
 });
 
-export * as storyActions from "./actions";
+export * as storyActions from "./publicActions";

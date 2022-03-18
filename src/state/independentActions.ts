@@ -5,7 +5,7 @@ export interface ContinueStoryArgs {
   maximally?: boolean;
 }
 export const continueStory = createAction(
-  "@inkjs-rtk/extra/continueStory",
+  "@inkjs-rtk/no-slice/continueStory",
   ({ maximally = false }: ContinueStoryArgs = {}) => ({
     payload: {
       maximally,
@@ -13,37 +13,24 @@ export const continueStory = createAction(
   })
 );
 
-export interface ChooseChoiceIdArgs {
+export interface ChooseChoiceByIdPayload {
   choiceId: EntityId;
   maximally?: boolean;
 }
-export interface ChooseChoiceIndexArgs {
+export const chooseChoiceById = createAction<ChooseChoiceByIdPayload>(
+  "@inkjs-rtk/no-slice/chooseChoiceById"
+);
+
+export interface ChooseChoiceByIndexPayload {
   choiceIndex: number;
   maximally?: boolean;
 }
-export const chooseChoice = createAction(
-  "@inkjs-rtk/extra/chooseChoice",
-  (args: ChooseChoiceIdArgs | ChooseChoiceIndexArgs) => {
-    if ("choiceId" in args) {
-      return {
-        payload: {
-          choiceId: args.choiceId,
-          maximally: args.maximally,
-        },
-      };
-    }
-
-    return {
-      payload: {
-        choiceIndex: args.choiceIndex,
-        maximally: args.maximally,
-      },
-    };
-  }
+export const chooseChoiceByIndex = createAction<ChooseChoiceByIndexPayload>(
+  "@inkjs-rtk/no-slice/chooseChoiceByIndex"
 );
 
 export const setStory = createAction(
-  "@inkjs-rtk/extra/setStory",
+  "@inkjs-rtk/no-slice/setStory",
   (storyJson: any, config: StoryConfig) => {
     return {
       payload: {
@@ -54,4 +41,18 @@ export const setStory = createAction(
   }
 );
 
-export const clearStory = createAction("@inkjs-rtk/extra/clearStory");
+export const clearStory = createAction("@inkjs-rtk/no-slice/clearStory");
+
+export interface BindExternalFunctionPayload {
+  name: string;
+  callback: (...args: any[]) => any;
+  lookaheadSafe?: boolean;
+}
+export const bindExternalFunction = createAction<BindExternalFunctionPayload>(
+  "@inkjs-rtk/no-slice/clearStory"
+);
+
+export const setVariable = createAction<{
+  name: string;
+  value: string | number | boolean;
+}>("@inkjs-rtk/no-slice/setVariable");
