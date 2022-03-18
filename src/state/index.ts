@@ -44,4 +44,14 @@ export const getStorySelectors = <S>(
   misc: getMiscSelectors(getMiscFromStorySliceState(getStorySliceState)),
 });
 
+class _GetStorySelectorsReturnTypeWrapper<S> {
+  fn(getStorySliceState: (rootState: S) => StorySliceState) {
+    return getStorySelectors(getStorySliceState);
+  }
+}
+
+export type StorySelectors<S> = ReturnType<
+  _GetStorySelectorsReturnTypeWrapper<S>["fn"]
+>;
+
 export * as storyActions from "./publicActions";
